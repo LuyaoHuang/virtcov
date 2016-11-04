@@ -1,7 +1,7 @@
-From 3cd3e5741bf989e6a37650af97d37dc6ffc0926d Mon Sep 17 00:00:00 2001
+From 4ca9e8ef1c20c99a8f17b863c72b908a6b85d0c7 Mon Sep 17 00:00:00 2001
 From: Luyao Huang <lhuang@redhat.com>
-Date: Fri, 4 Nov 2016 11:44:55 +0800
-Subject: [PATCH] Virtcov for v2.0.0~
+Date: Fri, 4 Nov 2016 10:27:08 +0800
+Subject: [PATCH] Virtcov for v2.2.0~
 
 Signed-off-by: Luyao Huang <lhuang@redhat.com>
 ---
@@ -26,10 +26,10 @@ index 50c358c..00d546f 100644
  check-local: all tests
  
 diff --git a/libvirt.spec.in b/libvirt.spec.in
-index d3986bb..6bf4ece 100644
+index 545990c..3f0c5ac 100644
 --- a/libvirt.spec.in
 +++ b/libvirt.spec.in
-@@ -216,7 +216,7 @@
+@@ -221,7 +221,7 @@
  Summary: Library providing a simple virtualization API
  Name: libvirt
  Version: @VERSION@
@@ -38,7 +38,7 @@ index d3986bb..6bf4ece 100644
  License: LGPLv2+
  Group: Development/Libraries
  BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-@@ -469,6 +469,9 @@ Requires: numad
+@@ -474,6 +474,9 @@ Requires: numad
  Requires: dbus
  # For uid creation during pre
  Requires(pre): shadow-utils
@@ -48,7 +48,7 @@ index d3986bb..6bf4ece 100644
  
  %description daemon
  Server side daemon required to manage the virtualization capabilities
-@@ -1195,6 +1198,7 @@ rm -f po/stamp-po
+@@ -1200,6 +1203,7 @@ rm -f po/stamp-po
             %{?arg_loader_nvram} \
             %{?enable_werror} \
             --enable-expensive-tests \
@@ -56,7 +56,7 @@ index d3986bb..6bf4ece 100644
             %{arg_init_script}
  make %{?_smp_mflags}
  gzip -9 ChangeLog
-@@ -1280,6 +1284,11 @@ mv $RPM_BUILD_ROOT%{_datadir}/systemtap/tapset/libvirt_qemu_probes.stp \
+@@ -1285,6 +1289,11 @@ mv $RPM_BUILD_ROOT%{_datadir}/systemtap/tapset/libvirt_qemu_probes.stp \
     $RPM_BUILD_ROOT%{_datadir}/systemtap/tapset/libvirt_qemu_probes-64.stp
  %endif
  
@@ -68,7 +68,7 @@ index d3986bb..6bf4ece 100644
  %clean
  rm -fr %{buildroot}
  
-@@ -1337,6 +1346,9 @@ fi
+@@ -1342,6 +1351,9 @@ fi
  /sbin/chkconfig --add virtlogd
  /sbin/chkconfig --add virtlockd
  %endif
@@ -78,7 +78,7 @@ index d3986bb..6bf4ece 100644
  
  %preun daemon
  %if %{with_systemd}
-@@ -1780,6 +1792,7 @@ exit 0
+@@ -1785,6 +1797,7 @@ exit 0
  %{_mandir}/man1/virt-host-validate.1*
  %{_bindir}/virsh
  %{_bindir}/virt-xml-validate
@@ -87,18 +87,18 @@ index d3986bb..6bf4ece 100644
  %{_bindir}/virt-host-validate
  
 diff --git a/tools/Makefile.am b/tools/Makefile.am
-index a01c58d..3e0da34 100644
+index 319abb2..e52b1ac 100644
 --- a/tools/Makefile.am
 +++ b/tools/Makefile.am
-@@ -71,6 +71,7 @@ EXTRA_DIST = \
- 	virsh-nwfilter.c virsh-pool.c			\
- 	virsh-secret.c virsh-snapshot.c			\
- 	virsh-volume.c					\
+@@ -64,6 +64,7 @@ EXTRA_DIST = \
+ 	libvirt-guests.sysconf				\
+ 	virt-login-shell.conf				\
+ 	virsh-edit.c					\
 +	virtcov.in					\
  	$(PODFILES)					\
  	$(MANINFILES)					\
  	$(NULL)
-@@ -83,7 +84,7 @@ MAINTAINERCLEANFILES =
+@@ -76,7 +77,7 @@ MAINTAINERCLEANFILES =
  confdir = $(sysconfdir)/libvirt
  conf_DATA =
  
@@ -107,7 +107,7 @@ index a01c58d..3e0da34 100644
  bin_PROGRAMS = virsh virt-admin
  libexec_SCRIPTS = libvirt-guests.sh
  man1_MANS = \
-@@ -114,6 +115,10 @@ virt-xml-validate: virt-xml-validate.in Makefile
+@@ -107,6 +108,10 @@ virt-xml-validate: virt-xml-validate.in Makefile
  		       -e 's|[@]VERSION@|$(VERSION)|g' \
  	  < $< > $@ || (rm $@ && exit 1) && chmod +x $@
  
