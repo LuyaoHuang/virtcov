@@ -1,23 +1,23 @@
-From 51320ad3cd08605d590436a1a53aadd0f2f8e4f9 Mon Sep 17 00:00:00 2001
+From f6d78389d081ea4ac8c688ec387e1fd2c12a5c64 Mon Sep 17 00:00:00 2001
 From: Luyao Huang <lhuang@redhat.com>
-Date: Fri, 4 Nov 2016 11:02:40 +0800
-Subject: [PATCH] Virtcov for v0.10.0~
+Date: Fri, 4 Nov 2016 12:01:11 +0800
+Subject: [PATCH] Virtcov for v1.2.8~
 
 Signed-off-by: Luyao Huang <lhuang@redhat.com>
 ---
  Makefile.am       |   2 +-
- libvirt.spec.in   |  16 ++++-
- tools/Makefile.am |   6 ++
+ libvirt.spec.in   |  15 +++-
+ tools/Makefile.am |   8 ++-
  tools/virtcov.in  | 208 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 230 insertions(+), 2 deletions(-)
+ 4 files changed, 229 insertions(+), 4 deletions(-)
  create mode 100644 tools/virtcov.in
 
 diff --git a/Makefile.am b/Makefile.am
-index 333e300..487523b 100644
+index 4aafe94..1507dc7 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -50,7 +50,7 @@ $(top_srcdir)/HACKING: $(top_srcdir)/docs/hacking1.xsl $(top_srcdir)/docs/hackin
- 	   > $@-t && mv $@-t $@ ; fi );
+@@ -71,7 +71,7 @@ $(top_srcdir)/HACKING: $(top_srcdir)/docs/hacking1.xsl \
+ 	   > $@-t && mv $@-t $@ ; fi;
  
  rpm: clean
 -	@(unset CDPATH ; $(MAKE) dist && rpmbuild -ta $(distdir).tar.gz)
@@ -26,10 +26,10 @@ index 333e300..487523b 100644
  check-local: all tests
  
 diff --git a/libvirt.spec.in b/libvirt.spec.in
-index 174053d..66499d4 100644
+index 4dc801b..6998aea 100644
 --- a/libvirt.spec.in
 +++ b/libvirt.spec.in
-@@ -319,7 +319,7 @@
+@@ -363,7 +363,7 @@
  Summary: Library providing a simple virtualization API
  Name: libvirt
  Version: @VERSION@
@@ -38,7 +38,7 @@ index 174053d..66499d4 100644
  License: LGPLv2+
  Group: Development/Libraries
  BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-@@ -444,6 +444,9 @@ Requires: numad
+@@ -712,6 +712,9 @@ Requires: numad
  Requires: dbus
  # For uid creation during pre
  Requires(pre): shadow-utils
@@ -46,74 +46,82 @@ index 174053d..66499d4 100644
 +Requires: numactl-devel
 +
  
- # All build-time requirements
- %if 0%{?enable_autotools}
-@@ -952,6 +955,7 @@ autoreconf -if
-            %{?_with_firewalld} \
-            %{with_packager} \
-            %{with_packager_version} \
-+           --enable-test-coverage \
+ %description daemon
+ Server side daemon required to manage the virtualization capabilities
+@@ -1473,6 +1476,7 @@ rm -f po/stamp-po
             --with-qemu-user=%{qemu_user} \
             --with-qemu-group=%{qemu_group} \
+            %{?enable_werror} \
++           --enable-test-coverage \
+            --enable-expensive-tests \
             %{init_scripts}
-@@ -1035,6 +1039,11 @@ rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/libvirtd.lxc
- rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/libvirtd.uml
+ make %{?_smp_mflags}
+@@ -1562,6 +1566,11 @@ mv $RPM_BUILD_ROOT%{_datadir}/systemtap/tapset/libvirt_qemu_probes.stp \
+ rm -f $RPM_BUILD_ROOT%{_prefix}/lib/sysctl.d/libvirtd.conf
  %endif
  
-+mkdir docs/gcno
++mkdir libvirt-docs/gcno
 +rsync -avm --include='*.gcno' --include='*.c' --include='*.h' \
-+    --include='*.generated.*' -f 'hide,! */' . docs/gcno
-+chmod a+rw -R docs/gcno
++    --include='*.generated.*' -f 'hide,! */' . libvirt-docs/gcno
++chmod a+rw -R libvirt-docs/gcno
 +
  %clean
  rm -fr %{buildroot}
  
-@@ -1067,6 +1076,9 @@ if ! getent passwd qemu >/dev/null; then
+@@ -1786,6 +1795,9 @@ if [ $1 = 0 ]; then
+     rm -f /var/lib/libvirt/libvirt-guests
  fi
- exit 0
  %endif
 +if [ -d "/usr/coverage/BUILD/libvirt-%{version}" ]; then
 +    mv -f /usr/coverage/BUILD/libvirt-%{version} /usr/coverage/BUILD/libvirt-%{version}-bk
 +fi
  
- %post
+ %post client
  
-@@ -1384,6 +1396,7 @@ rm -f $RPM_BUILD_ROOT%{_sysconfdir}/sysctl.d/libvirtd
+@@ -2156,6 +2168,7 @@ exit 0
  %{_mandir}/man1/virt-host-validate.1*
  %{_bindir}/virsh
  %{_bindir}/virt-xml-validate
 +%{_bindir}/virtcov
  %{_bindir}/virt-pki-validate
  %{_bindir}/virt-host-validate
- %{_libdir}/lib*.so.*
-@@ -1438,6 +1451,7 @@ rm -f $RPM_BUILD_ROOT%{_sysconfdir}/sysctl.d/libvirtd
- 
- %doc docs/*.html docs/html docs/*.gif
- %doc docs/libvirt-api.xml
-+%doc docs/gcno/*
- %doc examples/hellolibvirt
- %doc examples/domain-events/events-c
- %doc examples/dominfo
+ %{_libdir}/libvirt.so.*
 diff --git a/tools/Makefile.am b/tools/Makefile.am
-index 9391696..2e37236 100644
+index 93d642d..0b051ad 100644
 --- a/tools/Makefile.am
 +++ b/tools/Makefile.am
-@@ -92,6 +92,12 @@ virt_host_validate_SOURCES = \
- 		virt-host-validate-lxc.c virt-host-validate-lxc.h \
- 		$(NULL)
+@@ -53,7 +53,7 @@ EXTRA_DIST = \
+ 	virsh-network.c virsh-nodedev.c			\
+ 	virsh-nwfilter.c virsh-pool.c			\
+ 	virsh-secret.c virsh-snapshot.c			\
+-	virsh-volume.c
++	virsh-volume.c virtcov.in
  
-+EXTRA_DIST += virtcov.in
-+bin_SCRIPTS += virtcov
+ 
+ 
+@@ -62,7 +62,7 @@ DISTCLEANFILES =
+ confdir = $(sysconfdir)/libvirt
+ conf_DATA =
+ 
+-bin_SCRIPTS = virt-xml-validate virt-pki-validate
++bin_SCRIPTS = virt-xml-validate virt-pki-validate virtcov
+ bin_PROGRAMS = virsh virt-host-validate
+ libexec_SCRIPTS = libvirt-guests.sh
+ 
+@@ -103,6 +103,10 @@ virt-xml-validate.1: virt-xml-validate.in $(top_srcdir)/configure.ac
+ 	    && if grep 'POD ERROR' $(srcdir)/$@ ; then \
+ 		rm $(srcdir)/$@; exit 1; fi
+ 
 +virtcov: virtcov.in Makefile
 +	$(AM_V_GEN)sed -e 's|[@]VERSION@|$(VERSION)|g' \
 +		< $< > $@ || (rm $@ && exit 1) && chmod +x $@
 +
- virt_host_validate_LDFLAGS = \
- 		$(AM_LDFLAGS) \
- 		$(PIE_LDFLAGS) \
+ virt-pki-validate: virt-pki-validate.in Makefile
+ 	$(AM_V_GEN)sed -e 's|[@]sysconfdir@|$(sysconfdir)|g' \
+ 		       -e 's|[@]VERSION@|$(VERSION)|g' \
 diff --git a/tools/virtcov.in b/tools/virtcov.in
 new file mode 100644
-index 0000000..099a58f
+index 0000000..3b2818e
 --- /dev/null
 +++ b/tools/virtcov.in
 @@ -0,0 +1,208 @@
@@ -134,7 +142,7 @@ index 0000000..099a58f
 +# <http://www.gnu.org/licenses/>.
 +
 +version="@VERSION@"
-+COVPATH="/usr/share/doc/libvirt-devel-${version}/gcno/"
++COVPATH="/usr/share/doc/libvirt-docs-${version}/gcno/"
 +WORKPATH="/usr/coverage/BUILD/libvirt-${version}/"
 +COVERAGE_POOL="127.0.0.1:8000"
 +
