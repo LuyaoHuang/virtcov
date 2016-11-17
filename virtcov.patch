@@ -1,7 +1,7 @@
-From 51320ad3cd08605d590436a1a53aadd0f2f8e4f9 Mon Sep 17 00:00:00 2001
+From 088df627ac076870cbf6d251254ddbaf8d734778 Mon Sep 17 00:00:00 2001
 From: Luyao Huang <lhuang@redhat.com>
-Date: Fri, 4 Nov 2016 11:02:40 +0800
-Subject: [PATCH] Virtcov for v0.10.0~
+Date: Thu, 17 Nov 2016 14:27:59 +0800
+Subject: [PATCH] Virtcov for v0.10.2~
 
 Signed-off-by: Luyao Huang <lhuang@redhat.com>
 ---
@@ -113,7 +113,7 @@ index 9391696..2e37236 100644
  		$(PIE_LDFLAGS) \
 diff --git a/tools/virtcov.in b/tools/virtcov.in
 new file mode 100644
-index 0000000..099a58f
+index 0000000..38abe3f
 --- /dev/null
 +++ b/tools/virtcov.in
 @@ -0,0 +1,208 @@
@@ -208,12 +208,12 @@ index 0000000..099a58f
 +
 +startfunc(){
 +    preparefunc
-+    systemctl stop libvirtd virtlogd 2>/dev/null
-+    echo "Stop libvirtd virtlogd"
++    service libvirtd stop 2>/dev/null
++    echo "Stop libvirtd"
 +    lcov --directory "$WORKPATH" --zerocounters >/dev/null 2>&1
 +    echo "Clear exist gcda file"
-+    systemctl start libvirtd virtlogd 2>/dev/null
-+    echo "Start libvirtd virtlogd"
++    service libvirtd start 2>/dev/null
++    echo "Start libvirtd"
 +    gengcdafunc
 +    echo "create empty gcda file"
 +    echo "Done!"
@@ -223,13 +223,13 @@ index 0000000..099a58f
 +    local testname=$1
 +
 +    setenforce 0
-+    systemctl stop libvirtd virtlogd 2>/dev/null
-+    echo "Stop libvirtd virtlogd"
++    service libvirtd stop 2>/dev/null
++    echo "Stop libvirtd"
 +    setenforce 1
 +    lcov --capture --directory "$WORKPATH" --output-file /tmp/coverage.info --test-name "$testname" >/dev/null 2>&1
 +    echo "Create coverage.info in tmp directory"
-+    systemctl start libvirtd virtlogd 2>/dev/null
-+    echo "Start libvirtd virtlogd"
++    service libvirtd start 2>/dev/null
++    echo "Start libvirtd"
 +}
 +
 +reportfunc(){
