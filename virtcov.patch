@@ -1,4 +1,4 @@
-From a3c042227635f4502a18b2fdf6cd00a65955985d Mon Sep 17 00:00:00 2001
+From 5d90d09a7c257f0dee5544084a80f287d153dce5 Mon Sep 17 00:00:00 2001
 From: Luyao Huang <lhuang@redhat.com>
 Date: Thu, 17 Nov 2016 14:27:59 +0800
 Subject: [PATCH] Virtcov for v0.10.2~
@@ -6,10 +6,10 @@ Subject: [PATCH] Virtcov for v0.10.2~
 Signed-off-by: Luyao Huang <lhuang@redhat.com>
 ---
  Makefile.am       |   2 +-
- libvirt.spec.in   |  17 ++++-
+ libvirt.spec.in   |  18 ++++-
  tools/Makefile.am |   6 ++
  tools/virtcov.in  | 208 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 231 insertions(+), 2 deletions(-)
+ 4 files changed, 230 insertions(+), 4 deletions(-)
  create mode 100644 tools/virtcov.in
 
 diff --git a/Makefile.am b/Makefile.am
@@ -26,7 +26,7 @@ index 333e300..487523b 100644
  check-local: all tests
  
 diff --git a/libvirt.spec.in b/libvirt.spec.in
-index 174053d..9f95b9f 100644
+index 174053d..de113bf 100644
 --- a/libvirt.spec.in
 +++ b/libvirt.spec.in
 @@ -319,7 +319,7 @@
@@ -86,12 +86,13 @@ index 174053d..9f95b9f 100644
  %{_bindir}/virt-pki-validate
  %{_bindir}/virt-host-validate
  %{_libdir}/lib*.so.*
-@@ -1438,6 +1451,8 @@ rm -f $RPM_BUILD_ROOT%{_sysconfdir}/sysctl.d/libvirtd
+@@ -1436,8 +1449,7 @@ rm -f $RPM_BUILD_ROOT%{_sysconfdir}/sysctl.d/libvirtd
+ %doc %{_datadir}/gtk-doc/html/libvirt/*.png
+ %doc %{_datadir}/gtk-doc/html/libvirt/*.css
  
- %doc docs/*.html docs/html docs/*.gif
- %doc docs/libvirt-api.xml
-+%dir docs/gcno/
-+%doc docs/gcno/*
+-%doc docs/*.html docs/html docs/*.gif
+-%doc docs/libvirt-api.xml
++%doc docs/*
  %doc examples/hellolibvirt
  %doc examples/domain-events/events-c
  %doc examples/dominfo
