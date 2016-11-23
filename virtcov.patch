@@ -1,4 +1,4 @@
-From 57c39cf4123fc96d3a6a2a822455665ed31a2312 Mon Sep 17 00:00:00 2001
+From a03a643183eb42c5e433cfc29eb8bca7336e87d8 Mon Sep 17 00:00:00 2001
 From: Luyao Huang <lhuang@redhat.com>
 Date: Thu, 17 Nov 2016 14:27:59 +0800
 Subject: [PATCH] Virtcov for v0.10.2~
@@ -113,7 +113,7 @@ index 9391696..2e37236 100644
  		$(PIE_LDFLAGS) \
 diff --git a/tools/virtcov.in b/tools/virtcov.in
 new file mode 100644
-index 0000000..9ebb06e
+index 0000000..db46397
 --- /dev/null
 +++ b/tools/virtcov.in
 @@ -0,0 +1,208 @@
@@ -134,7 +134,7 @@ index 0000000..9ebb06e
 +# <http://www.gnu.org/licenses/>.
 +
 +version="@VERSION@"
-+COVPATH="/usr/share/doc/libvirt-devel-${version}/gcno"
++COVPATH="/usr/share/doc/libvirt-devel-${version}/gcno/"
 +WORKPATH="/usr/coverage/BUILD/libvirt-${version}/"
 +COVERAGE_POOL="127.0.0.1:8000"
 +
