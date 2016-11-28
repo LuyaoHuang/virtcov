@@ -1,4 +1,4 @@
-From a03a643183eb42c5e433cfc29eb8bca7336e87d8 Mon Sep 17 00:00:00 2001
+From ba01eb6f97fb79d2a4f7847f450061d189e4ba85 Mon Sep 17 00:00:00 2001
 From: Luyao Huang <lhuang@redhat.com>
 Date: Thu, 17 Nov 2016 14:27:59 +0800
 Subject: [PATCH] Virtcov for v0.10.2~
@@ -6,10 +6,10 @@ Subject: [PATCH] Virtcov for v0.10.2~
 Signed-off-by: Luyao Huang <lhuang@redhat.com>
 ---
  Makefile.am       |   2 +-
- libvirt.spec.in   |  16 ++++-
+ libvirt.spec.in   |  16 +++-
  tools/Makefile.am |   6 ++
- tools/virtcov.in  | 208 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 230 insertions(+), 2 deletions(-)
+ tools/virtcov.in  | 219 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 241 insertions(+), 2 deletions(-)
  create mode 100644 tools/virtcov.in
 
 diff --git a/Makefile.am b/Makefile.am
@@ -113,10 +113,10 @@ index 9391696..2e37236 100644
  		$(PIE_LDFLAGS) \
 diff --git a/tools/virtcov.in b/tools/virtcov.in
 new file mode 100644
-index 0000000..db46397
+index 0000000..d76827d
 --- /dev/null
 +++ b/tools/virtcov.in
-@@ -0,0 +1,208 @@
+@@ -0,0 +1,219 @@
 +#!/bin/sh
 +#
 +# This program is free software; you can redistribute it and/or modify
@@ -247,6 +247,11 @@ index 0000000..db46397
 +        genhtml /tmp/coverage.info --output-directory out >/dev/null
 +        echo "open out/index.html to check the report"
 +    fi
++    echo -e "Upload report ? [y]: \c"
++    read answer
++    if [[ "$answer" == "y" || "$answer" == "" ]]; then
++        real_uploadfunc $testname
++    fi
 +    echo "Done!"
 +}
 +
@@ -259,6 +264,13 @@ index 0000000..db46397
 +        exit 1
 +    fi
 +    coveragefunc $testname
++    real_uploadfunc $testname
++    echo "Done!"
++}
++
++real_uploadfunc(){
++    local testname=$1
++
 +    if [ -z $VIRTCOV_NAME ]; then
 +        echo -e "Your name: \c"
 +        read answer
@@ -281,7 +293,6 @@ index 0000000..db46397
 +    fi
 +    echo "Upload coverage info"
 +    curl --form "coveragefile=@/tmp/coverage.info" --form name="$testname" --form user_name="$VIRTCOV_NAME" --form version="$VIRTCOV_VERSION" $VIRTCOV_SERVER
-+    echo "Done!"
 +}
 +
 +cleanfunc(){
