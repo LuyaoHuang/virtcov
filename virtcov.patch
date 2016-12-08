@@ -1,25 +1,17 @@
-From 3e8630eeb79ee91f36347e5cab527f2d8081fe23 Mon Sep 17 00:00:00 2001
+From cadd9d2414d397a8a30fdbcc703dd5790ae7e934 Mon Sep 17 00:00:00 2001
 From: Luyao Huang <lhuang@redhat.com>
-Date: Fri, 4 Nov 2016 10:27:08 +0800
+Date: Thu, 8 Dec 2016 11:15:46 +0800
 Subject: [PATCH] Virtcov for v2.5.0~
 
 Signed-off-by: Luyao Huang <lhuang@redhat.com>
 ---
- .gnulib           |   2 +-
  Makefile.am       |   2 +-
  libvirt.spec.in   |  15 +++-
  tools/Makefile.am |   7 +-
  tools/virtcov.in  | 202 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 224 insertions(+), 4 deletions(-)
+ 4 files changed, 223 insertions(+), 3 deletions(-)
  create mode 100644 tools/virtcov.in
 
-diff --git a/.gnulib b/.gnulib
-index c3b1312..246b3b2 160000
---- a/.gnulib
-+++ b/.gnulib
-@@ -1 +1 @@
--Subproject commit c3b131294aa42b7997cc9b9a0bbb2934aa27fd6c
-+Subproject commit 246b3b28808ee5f4664be674dce573af9497fc7a
 diff --git a/Makefile.am b/Makefile.am
 index 50c358c..cad1710 100644
 --- a/Makefile.am
