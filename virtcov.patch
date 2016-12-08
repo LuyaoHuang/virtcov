@@ -1,19 +1,19 @@
-From 4fb0a50b57edaa6a66fc0d170537a0118e8e77fb Mon Sep 17 00:00:00 2001
+From 34277d4a272f418e863dccc72c2f6afde66f7aea Mon Sep 17 00:00:00 2001
 From: Luyao Huang <lhuang@redhat.com>
 Date: Fri, 4 Nov 2016 12:01:11 +0800
-Subject: [PATCH] Virtcov for v1.2.8~
+Subject: [PATCH] Virtcov for v1.2.17~
 
 Signed-off-by: Luyao Huang <lhuang@redhat.com>
 ---
  Makefile.am       |   2 +-
  libvirt.spec.in   |  15 +++-
  tools/Makefile.am |   8 ++-
- tools/virtcov.in  | 208 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 229 insertions(+), 4 deletions(-)
+ tools/virtcov.in  | 202 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 223 insertions(+), 4 deletions(-)
  create mode 100644 tools/virtcov.in
 
 diff --git a/Makefile.am b/Makefile.am
-index d338d5a..433e15e 100644
+index d338d5a..2ff227f 100644
 --- a/Makefile.am
 +++ b/Makefile.am
 @@ -72,7 +72,7 @@ $(top_srcdir)/HACKING: $(top_srcdir)/docs/hacking1.xsl \
@@ -21,12 +21,12 @@ index d338d5a..433e15e 100644
  
  rpm: clean
 -	@(unset CDPATH ; $(MAKE) dist && rpmbuild -ta $(distdir).tar.gz)
-+	@(unset CDPATH ; $(MAKE) dist && rpmbuild --define "_topdir /usr/coverage" -ta $(distdir).tar.gz)
++	@(unset CDPATH ; $(MAKE) dist && rpmbuild --define "_topdir /mnt/coverage" -ta $(distdir).tar.gz)
  
  check-local: all tests
  
 diff --git a/libvirt.spec.in b/libvirt.spec.in
-index 49d6601..93739c8 100644
+index 49d6601..6573a7a 100644
 --- a/libvirt.spec.in
 +++ b/libvirt.spec.in
 @@ -382,7 +382,7 @@
@@ -72,8 +72,8 @@ index 49d6601..93739c8 100644
      rm -f /var/lib/libvirt/libvirt-guests
  fi
  %endif
-+if [ -d "/usr/coverage/BUILD/libvirt-%{version}" ]; then
-+    mv -f /usr/coverage/BUILD/libvirt-%{version} /usr/coverage/BUILD/libvirt-%{version}-bk
++if [ -d "/mnt/coverage/BUILD/libvirt-%{version}" ]; then
++    mv -f /mnt/coverage/BUILD/libvirt-%{version} /mnt/coverage/BUILD/libvirt-%{version}-bk
 +fi
  
  %post client
@@ -121,10 +121,10 @@ index 93d642d..0b051ad 100644
  		       -e 's|[@]VERSION@|$(VERSION)|g' \
 diff --git a/tools/virtcov.in b/tools/virtcov.in
 new file mode 100644
-index 0000000..d8a5207
+index 0000000..dffca18
 --- /dev/null
 +++ b/tools/virtcov.in
-@@ -0,0 +1,208 @@
+@@ -0,0 +1,202 @@
 +#!/bin/sh
 +#
 +# This program is free software; you can redistribute it and/or modify
@@ -143,7 +143,7 @@ index 0000000..d8a5207
 +
 +version="@VERSION@"
 +COVPATH="/usr/share/doc/libvirt-docs-${version}/gcno/"
-+WORKPATH="/usr/coverage/BUILD/libvirt-${version}/"
++WORKPATH="/mnt/coverage/BUILD/libvirt-${version}/"
 +COVERAGE_POOL="127.0.0.1:8000"
 +
 +install_lcov(){
@@ -193,9 +193,6 @@ index 0000000..d8a5207
 +    fi
 +    if [ ! -e "${WORKPATH}/src/libvirt.c" ]; then
 +        mkdir -p $WORKPATH
-+        setenforce 0
-+        chcon -R system_u:object_r:mnt_t $WORKPATH
-+        setenforce 1
 +        rsync -avm --include='*.gcno' --include='*.c' --include='*.h' --include='*.generated.*' -f 'hide,! */' $COVPATH $WORKPATH >/dev/null 2>&1
 +    fi
 +}
@@ -209,9 +206,6 @@ index 0000000..d8a5207
 +            chmod a+w $newfile
 +        fi
 +    done
-+    setenforce 0
-+    chcon -R system_u:object_r:mnt_t $WORKPATH
-+    setenforce 1
 +}
 +
 +startfunc(){
