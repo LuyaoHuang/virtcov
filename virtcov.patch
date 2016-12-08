@@ -1,19 +1,27 @@
-From 4ca9e8ef1c20c99a8f17b863c72b908a6b85d0c7 Mon Sep 17 00:00:00 2001
+From 3e8630eeb79ee91f36347e5cab527f2d8081fe23 Mon Sep 17 00:00:00 2001
 From: Luyao Huang <lhuang@redhat.com>
 Date: Fri, 4 Nov 2016 10:27:08 +0800
-Subject: [PATCH] Virtcov for v2.2.0~
+Subject: [PATCH] Virtcov for v2.5.0~
 
 Signed-off-by: Luyao Huang <lhuang@redhat.com>
 ---
+ .gnulib           |   2 +-
  Makefile.am       |   2 +-
  libvirt.spec.in   |  15 +++-
  tools/Makefile.am |   7 +-
- tools/virtcov.in  | 208 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 229 insertions(+), 3 deletions(-)
+ tools/virtcov.in  | 202 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 224 insertions(+), 4 deletions(-)
  create mode 100644 tools/virtcov.in
 
+diff --git a/.gnulib b/.gnulib
+index c3b1312..246b3b2 160000
+--- a/.gnulib
++++ b/.gnulib
+@@ -1 +1 @@
+-Subproject commit c3b131294aa42b7997cc9b9a0bbb2934aa27fd6c
++Subproject commit 246b3b28808ee5f4664be674dce573af9497fc7a
 diff --git a/Makefile.am b/Makefile.am
-index 50c358c..00d546f 100644
+index 50c358c..cad1710 100644
 --- a/Makefile.am
 +++ b/Makefile.am
 @@ -66,7 +66,7 @@ $(top_srcdir)/HACKING: $(top_srcdir)/docs/hacking1.xsl \
@@ -21,15 +29,15 @@ index 50c358c..00d546f 100644
  
  rpm: clean
 -	@(unset CDPATH ; $(MAKE) dist && rpmbuild -ta $(distdir).tar.xz)
-+	@(unset CDPATH ; $(MAKE) dist && rpmbuild --define "_topdir /usr/coverage" -ta $(distdir).tar.xz)
++	@(unset CDPATH ; $(MAKE) dist && rpmbuild --define "_topdir /mnt/coverage" -ta $(distdir).tar.xz)
  
  check-local: all tests
  
 diff --git a/libvirt.spec.in b/libvirt.spec.in
-index 545990c..3f0c5ac 100644
+index 29d69ed..054e0df 100644
 --- a/libvirt.spec.in
 +++ b/libvirt.spec.in
-@@ -221,7 +221,7 @@
+@@ -228,7 +228,7 @@
  Summary: Library providing a simple virtualization API
  Name: libvirt
  Version: @VERSION@
@@ -38,7 +46,7 @@ index 545990c..3f0c5ac 100644
  License: LGPLv2+
  Group: Development/Libraries
  BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-@@ -474,6 +474,9 @@ Requires: numad
+@@ -485,6 +485,9 @@ Requires: numad
  Requires: dbus
  # For uid creation during pre
  Requires(pre): shadow-utils
@@ -48,7 +56,7 @@ index 545990c..3f0c5ac 100644
  
  %description daemon
  Server side daemon required to manage the virtualization capabilities
-@@ -1200,6 +1203,7 @@ rm -f po/stamp-po
+@@ -1217,6 +1220,7 @@ rm -f po/stamp-po
             %{?arg_loader_nvram} \
             %{?enable_werror} \
             --enable-expensive-tests \
@@ -56,7 +64,7 @@ index 545990c..3f0c5ac 100644
             %{arg_init_script}
  make %{?_smp_mflags}
  gzip -9 ChangeLog
-@@ -1285,6 +1289,11 @@ mv $RPM_BUILD_ROOT%{_datadir}/systemtap/tapset/libvirt_qemu_probes.stp \
+@@ -1302,6 +1306,11 @@ mv $RPM_BUILD_ROOT%{_datadir}/systemtap/tapset/libvirt_qemu_probes.stp \
     $RPM_BUILD_ROOT%{_datadir}/systemtap/tapset/libvirt_qemu_probes-64.stp
  %endif
  
@@ -68,17 +76,17 @@ index 545990c..3f0c5ac 100644
  %clean
  rm -fr %{buildroot}
  
-@@ -1342,6 +1351,9 @@ fi
+@@ -1358,6 +1367,9 @@ fi
  /sbin/chkconfig --add virtlogd
  /sbin/chkconfig --add virtlockd
  %endif
-+if [ -d "/usr/coverage/BUILD/libvirt-%{version}" ]; then
-+    mv -f /usr/coverage/BUILD/libvirt-%{version} /usr/coverage/BUILD/libvirt-%{version}-bk
++if [ -d "/mnt/coverage/BUILD/libvirt-%{version}" ]; then
++    mv -f /mnt/coverage/BUILD/libvirt-%{version} /mnt/coverage/BUILD/libvirt-%{version}-bk
 +fi
  
  %preun daemon
  %if %{with_systemd}
-@@ -1785,6 +1797,7 @@ exit 0
+@@ -1802,6 +1814,7 @@ exit 0
  %{_mandir}/man1/virt-host-validate.1*
  %{_bindir}/virsh
  %{_bindir}/virt-xml-validate
@@ -87,7 +95,7 @@ index 545990c..3f0c5ac 100644
  %{_bindir}/virt-host-validate
  
 diff --git a/tools/Makefile.am b/tools/Makefile.am
-index 319abb2..e52b1ac 100644
+index 100e657..310b283 100644
 --- a/tools/Makefile.am
 +++ b/tools/Makefile.am
 @@ -64,6 +64,7 @@ EXTRA_DIST = \
@@ -120,10 +128,10 @@ index 319abb2..e52b1ac 100644
  		       -e 's|[@]VERSION@|$(VERSION)|g' \
 diff --git a/tools/virtcov.in b/tools/virtcov.in
 new file mode 100644
-index 0000000..3b2818e
+index 0000000..250ded6
 --- /dev/null
 +++ b/tools/virtcov.in
-@@ -0,0 +1,208 @@
+@@ -0,0 +1,202 @@
 +#!/bin/sh
 +#
 +# This program is free software; you can redistribute it and/or modify
@@ -142,7 +150,7 @@ index 0000000..3b2818e
 +
 +version="@VERSION@"
 +COVPATH="/usr/share/doc/libvirt-docs-${version}/gcno/"
-+WORKPATH="/usr/coverage/BUILD/libvirt-${version}/"
++WORKPATH="/mnt/coverage/BUILD/libvirt-${version}/"
 +COVERAGE_POOL="127.0.0.1:8000"
 +
 +install_lcov(){
@@ -192,9 +200,6 @@ index 0000000..3b2818e
 +    fi
 +    if [ ! -e "${WORKPATH}/src/libvirt.c" ]; then
 +        mkdir -p $WORKPATH
-+        setenforce 0
-+        chcon -R system_u:object_r:mnt_t $WORKPATH
-+        setenforce 1
 +        rsync -avm --include='*.gcno' --include='*.c' --include='*.h' --include='*.generated.*' -f 'hide,! */' $COVPATH $WORKPATH >/dev/null 2>&1
 +    fi
 +}
@@ -208,9 +213,6 @@ index 0000000..3b2818e
 +            chmod a+w $newfile
 +        fi
 +    done
-+    setenforce 0
-+    chcon -R system_u:object_r:mnt_t $WORKPATH
-+    setenforce 1
 +}
 +
 +startfunc(){
