@@ -1,7 +1,7 @@
 From cadd9d2414d397a8a30fdbcc703dd5790ae7e934 Mon Sep 17 00:00:00 2001
 From: Luyao Huang <lhuang@redhat.com>
 Date: Thu, 8 Dec 2016 11:15:46 +0800
-Subject: [PATCH] Virtcov for v2.5.0~
+Subject: [PATCH] Virtcov for v3.0.0~
 
 Signed-off-by: Luyao Huang <lhuang@redhat.com>
 ---
