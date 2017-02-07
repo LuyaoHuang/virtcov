@@ -1,0 +1,202 @@
+#!/bin/sh
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library.  If not, see
+# <http://www.gnu.org/licenses/>.
+
+version="@VERSION@"
+COVPATH="/usr/share/doc/libvirt-docs-${version}/gcno/"
+WORKPATH="/mnt/coverage/BUILD/libvirt-${version}/"
+COVERAGE_POOL="127.0.0.1:8000"
+
+install_lcov(){
+    echo "Get lcov"
+    git clone https://github.com/linux-test-project/lcov.git /tmp/lcov >/tmp/virtcov.log 2>&1
+    if [ $? -eq 1 ]; then
+        echo "Fail to clone lcov" >&2
+        echo "Check /tmp/virtcov.log for more details" >&2
+        exit 1
+    fi
+    echo "Install lcov"
+    make install -C /tmp/lcov >/tmp/virtcov.log 2>&1
+    if [ $? -eq 1 ]; then
+        echo "Fail to build and install lcov" >&2
+        echo "Check /tmp/virtcov.log for more details" >&2
+        exit 1
+    fi
+    echo "Clean resource"
+    rm -rf /tmp/lcov
+}
+
+preparefunc(){
+    if [ ! -d "$COVPATH" ]; then
+        echo "${COVPATH} is not exist !" >&2
+        exit 1
+    fi
+    which lcov >/dev/null 2>&1 && true
+    if [ $? -eq 1 ]; then
+        echo "Cannot find lcov, need install it first !" >&2
+        echo -e "Auto install lcov ? [y]: \c"
+        read answer
+        if [[ "$answer" == "y" || "$answer" == "" ]]; then
+            install_lcov
+        else
+            exit 1
+        fi
+    fi
+    which genhtml >/dev/null 2>&1 && true
+    if [ $? -eq 1 ]; then
+        echo "Cannot find genhtml, need install it first !" >&2
+        exit 1
+    fi
+    which rsync >/dev/null 2>&1 && true
+    if [ $? -eq 1 ]; then
+        echo "Cannot find rsync, need install it first !" >&2
+        exit 1
+    fi
+    if [ ! -e "${WORKPATH}/src/libvirt.c" ]; then
+        mkdir -p $WORKPATH
+        rsync -avm --include='*.gcno' --include='*.c' --include='*.h' --include='*.generated.*' -f 'hide,! */' $COVPATH $WORKPATH >/dev/null 2>&1
+    fi
+}
+
+gengcdafunc(){
+    for i in `ls -aR $WORKPATH | awk '/:$/&&f{s=$0;f=0} /:$/&&!f{sub(/:$/,"");s=$0;f=1;next} NF&&f{ print s"/"$0 }'`
+    do
+        if [[ $i == *".gcno" ]]; then
+            newfile=$(echo "$i" | sed -s "s/gcno/gcda/g")
+            touch $newfile
+            chmod a+w $newfile
+        fi
+    done
+}
+
+startfunc(){
+    preparefunc
+    systemctl stop libvirtd virtlogd 2>/dev/null
+    echo "Stop libvirtd virtlogd"
+    lcov --directory "$WORKPATH" --zerocounters >/dev/null 2>&1
+    echo "Clear exist gcda file"
+    systemctl start libvirtd virtlogd 2>/dev/null
+    echo "Start libvirtd virtlogd"
+    gengcdafunc
+    echo "create empty gcda file"
+    echo "Done!"
+}
+
+coveragefunc(){
+    local testname=$1
+
+    setenforce 0
+    systemctl stop libvirtd virtlogd 2>/dev/null
+    echo "Stop libvirtd virtlogd"
+    setenforce 1
+    lcov --capture --directory "$WORKPATH" --output-file /tmp/coverage.info --test-name "$testname" >/dev/null 2>&1
+    echo "Create coverage.info in tmp directory"
+    systemctl start libvirtd virtlogd 2>/dev/null
+    echo "Start libvirtd virtlogd"
+}
+
+reportfunc(){
+    preparefunc
+    echo -e "Name for this report: \c"
+    read testname
+    if [[ "$testname" == "" ]]; then
+        echo "Invalid name !" >&2
+        exit 1
+    fi
+    coveragefunc $testname
+    echo -e "Create a html report ? [y]: \c"
+    read answer
+    if [[ "$answer" == "y" || "$answer" == "" ]]; then
+        genhtml /tmp/coverage.info --output-directory out >/dev/null
+        echo "open out/index.html to check the report"
+    fi
+    echo "Done!"
+}
+
+uploadfunc(){
+    preparefunc
+    echo -e "Name for this report: \c"
+    read testname
+    if [[ "$testname" == "" ]]; then
+        echo "Invalid name !" >&2
+        exit 1
+    fi
+    coveragefunc $testname
+    if [ -z $VIRTCOV_NAME ]; then
+        echo -e "Your name: \c"
+        read answer
+        if [[ "$answer" == "" ]]; then
+            echo "Invalid name !" >&2
+            exit 1
+        fi
+        export VIRTCOV_NAME="$answer"
+    fi
+    if [ -z $VIRTCOV_SERVER ]; then
+        export VIRTCOV_SERVER="http://$COVERAGE_POOL/upload/coveragefile/"
+    fi
+    if [ -z $VIRTCOV_VERSION ]; then
+        virtcov_version=$(rpm -q libvirt)
+        if [ $? -eq 1 ]; then
+            echo "Fail to get libvirt version !" >&2
+            exit 1
+        fi
+        export VIRTCOV_VERSION=$virtcov_version
+    fi
+    echo "Upload coverage info"
+    curl --form "coveragefile=@/tmp/coverage.info" --form name="$testname" --form user_name="$VIRTCOV_NAME" --form version="$VIRTCOV_VERSION" $VIRTCOV_SERVER
+    echo "Done!"
+}
+
+cleanfunc(){
+    lcov --directory "$WORKPATH" --zerocounters >/dev/null 2>&1
+    echo "Clear exist gcda file"
+    gengcdafunc
+    echo "create empty gcda file"
+    echo "Done!"
+}
+
+set -e
+
+case $1 in
+  -h | --h | --he | --hel | --help)
+    cat <<EOF
+Usage:
+  $0 OPTION
+
+Options:
+  -h | --help        Display program help
+  -s | --start       Clear exist coverage report and start a new record
+  -c | --clear       Clear exist coverage report without restart libvirtd
+  -r | --report      Create a html report on current directory
+  -u | --upload      Upload coverage info to coverage server
+EOF
+    exit ;;
+  -s | --s | --st | --sta | --star | --start)
+    startfunc
+    exit ;;
+  -r | --r | --re | --rep | --repo | --repor | --report)
+    reportfunc
+    exit ;;
+  -c | --c | --cl | --cle | --clea | --clear)
+    cleanfunc
+    exit ;;
+  -u | --u | --up | --upl | --uplo | --uploa | --upload)
+    uploadfunc
+    exit ;;
+  --) shift ;;
+  *)
+    echo "$0: unrecognized option '$1'" >&2
+    exit 1 ;;
+esac
