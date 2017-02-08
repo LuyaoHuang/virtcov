@@ -15,8 +15,9 @@
 # <http://www.gnu.org/licenses/>.
 
 version="@VERSION@"
+builddir="@BUILDDIR@"
 COVPATH="/usr/share/doc/libvirt-docs-${version}/gcno/"
-WORKPATH="/mnt/coverage/BUILD/libvirt-${version}/"
+WORKPATH="${builddir}/BUILD/libvirt-${version}/"
 COVERAGE_POOL="127.0.0.1:8000"
 
 install_lcov(){
@@ -66,6 +67,7 @@ preparefunc(){
     fi
     if [ ! -e "${WORKPATH}/src/libvirt.c" ]; then
         mkdir -p $WORKPATH
+        chcon system_u:object_r:mnt_t:s0 $WORKPATH
         rsync -avm --include='*.gcno' --include='*.c' --include='*.h' --include='*.generated.*' -f 'hide,! */' $COVPATH $WORKPATH >/dev/null 2>&1
     fi
 }
