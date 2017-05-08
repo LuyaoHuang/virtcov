@@ -70,6 +70,10 @@ preparefunc(){
         chcon system_u:object_r:mnt_t:s0 $WORKPATH
         rsync -avm --include='*.gcno' --include='*.c' --include='*.h' --include='*.generated.*' -f 'hide,! */' $COVPATH $WORKPATH >/dev/null 2>&1
     fi
+    if [ ! -e "/usr/include/numa.h" ]; then
+        echo "Cannot /usr/include/numa.h, will auto install numactl-devel" >&2
+        yum install -y numactl-devel
+    fi
 }
 
 gengcdafunc(){
