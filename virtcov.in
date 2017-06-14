@@ -44,6 +44,16 @@ preparefunc(){
         echo "${COVPATH} is not exist !" >&2
         exit 1
     fi
+    which git >/dev/null 2>&1 && true
+    if [ $? -eq 1 ]; then
+        echo "Cannot find git, auto install git" >&2
+        yum install -y git
+    fi
+    which perl-Digest-MD5 >/dev/null 2>&1 && true
+    if [ $? -eq 1 ]; then
+        echo "Cannot find perl-Digest-MD5, auto install perl-Digest-MD5" >&2
+        yum install -y perl-Digest-MD5
+    fi
     which lcov >/dev/null 2>&1 && true
     if [ $? -eq 1 ]; then
         echo "Cannot find lcov, need install it first !" >&2
@@ -65,11 +75,6 @@ preparefunc(){
         echo "Cannot find rsync, need install it first !" >&2
         exit 1
     fi
-    if [ ! -e "${WORKPATH}/src/libvirt.c" ]; then
-        mkdir -p $WORKPATH
-        chcon system_u:object_r:mnt_t:s0 $WORKPATH
-        rsync -avm --include='*.gcno' --include='*.c' --include='*.h' --include='*.generated.*' -f 'hide,! */' $COVPATH $WORKPATH >/dev/null 2>&1
-    fi
     if [ ! -e "/usr/include/numa.h" ]; then
         echo "Cannot /usr/include/numa.h, will auto install numactl-devel" >&2
         yum install -y numactl-devel
@@ -77,6 +82,10 @@ preparefunc(){
 }
 
 gengcdafunc(){
+    rm -rf $WORKPATH
+    mkdir -p $WORKPATH
+    chcon system_u:object_r:mnt_t:s0 $WORKPATH
+    rsync -avm --include='*.gcno' --include='*.c' --include='*.h' --include='*.generated.*' -f 'hide,! */' $COVPATH $WORKPATH >/dev/null 2>&1
     for i in `ls -aR $WORKPATH | awk '/:$/&&f{s=$0;f=0} /:$/&&!f{sub(/:$/,"");s=$0;f=1;next} NF&&f{ print s"/"$0 }'`
     do
         if [[ $i == *".gcno" ]]; then
@@ -173,6 +182,10 @@ cleanfunc(){
     echo "Done!"
 }
 
+workdirfunc(){
+    echo $WORKPATH
+}
+
 set -e
 
 case $1 in
@@ -187,6 +200,7 @@ Options:
   -c | --clear       Clear exist coverage report without restart libvirtd
   -r | --report      Create a html report on current directory
   -u | --upload      Upload coverage info to coverage server
+  -w | --workdir     Display work directory
 EOF
     exit ;;
   -s | --s | --st | --sta | --star | --start)
@@ -200,6 +214,9 @@ EOF
     exit ;;
   -u | --u | --up | --upl | --uplo | --uploa | --upload)
     uploadfunc
+    exit ;;
+  -w | --w | --wo | --wor | --work | --workd | --workdi | --workdir)
+    workdirfunc
     exit ;;
   --) shift ;;
   *)
