@@ -1,7 +1,7 @@
-From cadd9d2414d397a8a30fdbcc703dd5790ae7e934 Mon Sep 17 00:00:00 2001
+From ac132c489def95d862161e81662085ed832fd05a Mon Sep 17 00:00:00 2001
 From: Luyao Huang <lhuang@redhat.com>
-Date: Thu, 8 Dec 2016 11:15:46 +0800
-Subject: [PATCH] Virtcov for v3.0.0~
+Date: Wed, 6 Sep 2017 16:39:41 +0800
+Subject: [PATCH] Virtcov for v3.7.0~
 
 Signed-off-by: Luyao Huang <lhuang@redhat.com>
 ---
@@ -13,11 +13,11 @@ Signed-off-by: Luyao Huang <lhuang@redhat.com>
  create mode 100644 tools/virtcov.in
 
 diff --git a/Makefile.am b/Makefile.am
-index 50c358c..cad1710 100644
+index d042e9a..c01d5ba 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -66,7 +66,7 @@ $(top_srcdir)/HACKING: $(top_srcdir)/docs/hacking1.xsl \
- 	   > $@-t && mv $@-t $@ ; fi;
+@@ -67,7 +67,7 @@ EXTRA_DIST += \
+ 	$(srcdir)/docs/reformat-news.py
  
  rpm: clean
 -	@(unset CDPATH ; $(MAKE) dist && rpmbuild -ta $(distdir).tar.xz)
@@ -26,10 +26,10 @@ index 50c358c..cad1710 100644
  check-local: all tests
  
 diff --git a/libvirt.spec.in b/libvirt.spec.in
-index 29d69ed..054e0df 100644
+index 2b58bf3..4cee893 100644
 --- a/libvirt.spec.in
 +++ b/libvirt.spec.in
-@@ -228,7 +228,7 @@
+@@ -240,7 +240,7 @@
  Summary: Library providing a simple virtualization API
  Name: libvirt
  Version: @VERSION@
@@ -38,7 +38,7 @@ index 29d69ed..054e0df 100644
  License: LGPLv2+
  Group: Development/Libraries
  BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-@@ -485,6 +485,9 @@ Requires: numad
+@@ -508,6 +508,9 @@ Requires: numad
  Requires: dbus
  # For uid creation during pre
  Requires(pre): shadow-utils
@@ -48,7 +48,7 @@ index 29d69ed..054e0df 100644
  
  %description daemon
  Server side daemon required to manage the virtualization capabilities
-@@ -1217,6 +1220,7 @@ rm -f po/stamp-po
+@@ -1365,6 +1368,7 @@ rm -f po/stamp-po
             %{?arg_loader_nvram} \
             %{?enable_werror} \
             --enable-expensive-tests \
@@ -56,7 +56,7 @@ index 29d69ed..054e0df 100644
             %{arg_init_script}
  make %{?_smp_mflags}
  gzip -9 ChangeLog
-@@ -1302,6 +1306,11 @@ mv $RPM_BUILD_ROOT%{_datadir}/systemtap/tapset/libvirt_qemu_probes.stp \
+@@ -1459,6 +1463,11 @@ mv $RPM_BUILD_ROOT%{_datadir}/systemtap/tapset/libvirt_qemu_probes.stp \
     $RPM_BUILD_ROOT%{_datadir}/systemtap/tapset/libvirt_qemu_probes-64.stp
  %endif
  
@@ -68,7 +68,7 @@ index 29d69ed..054e0df 100644
  %clean
  rm -fr %{buildroot}
  
-@@ -1358,6 +1367,9 @@ fi
+@@ -1515,6 +1524,9 @@ fi
  /sbin/chkconfig --add virtlogd
  /sbin/chkconfig --add virtlockd
  %endif
@@ -78,7 +78,7 @@ index 29d69ed..054e0df 100644
  
  %preun daemon
  %if %{with_systemd}
-@@ -1802,6 +1814,7 @@ exit 0
+@@ -2011,6 +2023,7 @@ exit 0
  %{_mandir}/man1/virt-host-validate.1*
  %{_bindir}/virsh
  %{_bindir}/virt-xml-validate
@@ -87,10 +87,10 @@ index 29d69ed..054e0df 100644
  %{_bindir}/virt-host-validate
  
 diff --git a/tools/Makefile.am b/tools/Makefile.am
-index 100e657..310b283 100644
+index ffa8c3e..86e165d 100644
 --- a/tools/Makefile.am
 +++ b/tools/Makefile.am
-@@ -64,6 +64,7 @@ EXTRA_DIST = \
+@@ -66,6 +66,7 @@ EXTRA_DIST = \
  	libvirt-guests.sysconf				\
  	virt-login-shell.conf				\
  	virsh-edit.c					\
@@ -98,7 +98,7 @@ index 100e657..310b283 100644
  	$(PODFILES)					\
  	$(MANINFILES)					\
  	$(NULL)
-@@ -76,7 +77,7 @@ MAINTAINERCLEANFILES =
+@@ -78,7 +79,7 @@ MAINTAINERCLEANFILES =
  confdir = $(sysconfdir)/libvirt
  conf_DATA =
  
@@ -107,7 +107,7 @@ index 100e657..310b283 100644
  bin_PROGRAMS = virsh virt-admin
  libexec_SCRIPTS = libvirt-guests.sh
  man1_MANS = \
-@@ -107,6 +108,10 @@ virt-xml-validate: virt-xml-validate.in Makefile
+@@ -109,6 +110,10 @@ virt-xml-validate: virt-xml-validate.in Makefile
  		       -e 's|[@]VERSION@|$(VERSION)|g' \
  	  < $< > $@ || (rm $@ && exit 1) && chmod +x $@
  
