@@ -49,7 +49,7 @@ preparefunc(){
         echo "Cannot find git, auto install git" >&2
         yum install -y git
     fi
-    which perl-Digest-MD5 >/dev/null 2>&1 && true
+    rpm -q perl-Digest-MD5 >/dev/null 2>&1 && true
     if [ $? -eq 1 ]; then
         echo "Cannot find perl-Digest-MD5, auto install perl-Digest-MD5" >&2
         yum install -y perl-Digest-MD5
@@ -82,7 +82,7 @@ preparefunc(){
 }
 
 gengcdafunc(){
-    rm -rf $WORKPATH
+    rm -R $WORKPATH
     mkdir -p $WORKPATH
     chcon system_u:object_r:mnt_t:s0 $WORKPATH
     rsync -avm --include='*.gcno' --include='*.c' --include='*.h' --include='*.generated.*' -f 'hide,! */' $COVPATH $WORKPATH >/dev/null 2>&1
