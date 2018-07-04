@@ -102,10 +102,10 @@ startfunc(){
     echo "Stop libvirtd virtlogd"
     lcov --directory "$WORKPATH" --zerocounters >/dev/null 2>&1
     echo "Clear exist gcda file"
-    systemctl start libvirtd virtlogd 2>/dev/null
-    echo "Start libvirtd virtlogd"
     gengcdafunc
     echo "create empty gcda file"
+    systemctl start libvirtd virtlogd 2>/dev/null
+    echo "Start libvirtd virtlogd"
     echo "Done!"
 }
 
