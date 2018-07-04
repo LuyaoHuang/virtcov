@@ -54,6 +54,11 @@ preparefunc(){
         echo "Cannot find perl-Digest-MD5, auto install perl-Digest-MD5" >&2
         yum install -y perl-Digest-MD5
     fi
+    which gcov >/dev/null 2>&1 && true
+    if [ $? -eq 1 ]; then
+        echo "Cannot gcov, auto install gcc" >&2
+        yum install -y gcc
+    fi
     which lcov >/dev/null 2>&1 && true
     if [ $? -eq 1 ]; then
         echo "Cannot find lcov, need install it first !" >&2
