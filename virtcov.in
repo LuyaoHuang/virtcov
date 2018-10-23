@@ -77,7 +77,8 @@ preparefunc(){
     fi
     which rsync >/dev/null 2>&1 && true
     if [ $? -eq 1 ]; then
-        echo "Cannot find rsync, need install it first !" >&2
+        echo "Cannot find rsync, will auto install rsync" >&2
+        yum install -y rsync
         exit 1
     fi
     if [ ! -e "/usr/include/numa.h" ]; then
