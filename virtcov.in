@@ -17,6 +17,7 @@
 version="@VERSION@"
 builddir="@BUILDDIR@"
 COVPATH="/usr/share/doc/libvirt-docs-${version}/gcno/"
+COVPATH2="/usr/share/doc/libvirt-docs/gcno/"
 WORKPATH="${builddir}/libvirt-${version}/"
 COVERAGE_POOL="127.0.0.1:8000"
 
@@ -40,8 +41,12 @@ install_lcov(){
 }
 
 preparefunc(){
-    if [ ! -d "$COVPATH" ]; then
-        echo "${COVPATH} is not exist !" >&2
+    if [ -d "$COVPATH" ]; then
+        export REAL_COVPATH=$COVPATH
+    elif [ -d "$COVPATH2" ]; then
+        export REAL_COVPATH=$COVPATH2
+    else
+        echo "${COVPATH} and ${COVPATH2} is not exist !" >&2
         exit 1
     fi
     which git >/dev/null 2>&1 && true
@@ -91,7 +96,7 @@ gengcdafunc(){
     rm -R $WORKPATH
     mkdir -p $WORKPATH
     chcon system_u:object_r:mnt_t:s0 $WORKPATH
-    rsync -avm --include='*.gcno' --include='*.c' --include='*.h' --include='*.generated.*' -f 'hide,! */' $COVPATH $WORKPATH >/dev/null 2>&1
+    rsync -avm --include='*.gcno' --include='*.c' --include='*.h' --include='*.generated.*' -f 'hide,! */' $REAL_COVPATH $WORKPATH >/dev/null 2>&1
     for i in `ls -aR $WORKPATH | awk '/:$/&&f{s=$0;f=0} /:$/&&!f{sub(/:$/,"");s=$0;f=1;next} NF&&f{ print s"/"$0 }'`
     do
         if [[ $i == *".gcno" ]]; then
