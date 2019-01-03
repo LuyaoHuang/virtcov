@@ -30,6 +30,11 @@ install_lcov(){
         exit 1
     fi
     echo "Install lcov"
+    which make >/dev/null 2>&1 && true
+    if [ $? -eq 1 ]; then
+        echo "Cannot find make, auto install make" >&2
+        yum install -y make
+    fi
     make install -C /tmp/lcov >/tmp/virtcov.log 2>&1
     if [ $? -eq 1 ]; then
         echo "Fail to build and install lcov" >&2
@@ -61,7 +66,7 @@ preparefunc(){
     fi
     which gcov >/dev/null 2>&1 && true
     if [ $? -eq 1 ]; then
-        echo "Cannot gcov, auto install gcc" >&2
+        echo "Cannot find gcov, auto install gcc" >&2
         yum install -y gcc
     fi
     which lcov >/dev/null 2>&1 && true
@@ -73,6 +78,14 @@ preparefunc(){
             install_lcov
         else
             exit 1
+        fi
+    else
+        rpm -q lcov >/dev/null 2>&1 && true
+        if [ $? -eq 0 ]; then
+            echo "Remove rpm lcov since it is too old" >&2
+            yum remove -y lcov
+            echo "Auto install latest lcov" >&2
+            install_lcov
         fi
     fi
     which genhtml >/dev/null 2>&1 && true
