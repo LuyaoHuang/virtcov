@@ -106,7 +106,7 @@ preparefunc(){
 }
 
 gengcdafunc(){
-    rm -R $WORKPATH
+    rm -R $WORKPATH && true
     mkdir -p $WORKPATH
     chcon system_u:object_r:mnt_t:s0 $WORKPATH
     rsync -avm --include='*.gcno' --include='*.c' --include='*.h' --include='*.generated.*' -f 'hide,! */' $REAL_COVPATH $WORKPATH >/dev/null 2>&1
