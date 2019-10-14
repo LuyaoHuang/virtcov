@@ -97,7 +97,6 @@ preparefunc(){
     if [ $? -eq 1 ]; then
         echo "Cannot find rsync, will auto install rsync" >&2
         yum install -y rsync
-        exit 1
     fi
     if [ ! -e "/usr/include/numa.h" ]; then
         echo "Cannot /usr/include/numa.h, will auto install numactl-devel" >&2
