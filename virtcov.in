@@ -18,7 +18,7 @@ version="@VERSION@"
 builddir="@BUILDDIR@"
 COVPATH="/usr/share/doc/libvirt-docs-${version}/gcno/"
 COVPATH2="/usr/share/doc/libvirt-docs/gcno/"
-WORKPATH="${builddir}/libvirt-${version}/"
+WORKPATH="${builddir}/"
 COVERAGE_POOL="127.0.0.1:8000"
 
 install_lcov(){
