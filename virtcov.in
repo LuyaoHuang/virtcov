@@ -21,6 +21,14 @@ COVPATH2="/usr/share/doc/libvirt-docs/gcno/"
 WORKPATH="${builddir}/"
 COVERAGE_POOL="127.0.0.1:8000"
 
+LCOV_PERL_DEPS="
+    perl-Digest-MD5
+    perl-JSON-XS
+    perl-Module-Load-Conditional
+    perl-IO-Compress
+    perl-File-Copy-Recursive
+"
+
 install_lcov(){
     echo "Get lcov"
     git clone https://github.com/LuyaoHuang/lcov.git -b rhel /tmp/lcov >/tmp/virtcov.log 2>&1
@@ -59,11 +67,13 @@ preparefunc(){
         echo "Cannot find git, auto install git" >&2
         yum install -y git
     fi
-    rpm -q perl-Digest-MD5 >/dev/null 2>&1 && true
-    if [ $? -eq 1 ]; then
-        echo "Cannot find perl-Digest-MD5, auto install perl-Digest-MD5" >&2
-        yum install -y perl-Digest-MD5
-    fi
+    for dep in $LCOV_PERL_DEPS; do
+        rpm -q $dep >/dev/null 2>&1 && true
+        if [ $? -eq 1 ]; then
+            echo "Cannot find $dep, auto install $dep" >&2
+            yum install -y $dep
+        fi
+    done
     which gcov >/dev/null 2>&1 && true
     if [ $? -eq 1 ]; then
         echo "Cannot find gcov, auto install gcc" >&2
